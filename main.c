@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include<conio.h>
-#include<process.h>
 #include<stdlib.h>
 #include<dir.h>
 #include<string.h>
@@ -40,7 +38,7 @@ void undotosave(char ourroot[],int wheretowrite) {
            // printf("%s %s",ourroot,fileundo[i].name);
             if (strcmp(ourroot, fileundo[i].name) == 0) {
                 //  printf("ssss");
-                which = howmanyeachwas[i / 10]%10;
+                which = howmanyeachwas[i / 10];
                 wheretowrite = which + i;
             }
         }
@@ -61,14 +59,16 @@ void undotosave(char ourroot[],int wheretowrite) {
         long int size = ftell(ptr);
         rewind(ptr);
 
-        fileundo[wheretowrite].file = calloc(size + 1, 1);
+        char *w = calloc(size + 1, 1);
 
-        fread(fileundo[wheretowrite].file,1,size,ptr);
-        //printf("%s ",fileundo[wheretowrite].file);
+        fread(w,1,size,ptr);
+        fileundo[wheretowrite].file= strdup(w);
+        //printf("%s ddddddd ",fileundo[wheretowrite].file);
         fclose(ptr);
-            howmanyeachfile[howmanyfiles]++;
-            howmanyeachwas[howmanyfiles]++;
-
+        howmanyeachfile[howmanyfiles]++;
+        howmanyeachwas[howmanyfiles]++;
+        howmanyeachfile[howmanyfiles]%=10;
+        howmanyeachwas[howmanyfiles]%=10;
         //printf("%s",whole2);
 //    for (int i = 0; i < 1500; i+=10) {
 //        if(strcmp(ourroot,fileundo[i].name)==0)
@@ -77,45 +77,7 @@ void undotosave(char ourroot[],int wheretowrite) {
     }
 }
 
-int undo(char ourroot[]){
-    char c, e, com[15], saver[400], *wherefind = "";
-    char wholefile[8000], *whole, *token;
-    FILE *ptr;
-    int which,i;
-    for ( i = 0; i < howmanyfiles*10+1; i+=10) {
-        if(strcmp(ourroot,fileundo[i].name)==0) {
-            if(howmanyeachwas[i/10]-1==0){
-                printf("File just been created you cannot  do undo\n");
-                return -1;
-            }
-            howmanyeachfile[i/10]-=2;
-            which = howmanyeachfile[i /10] ;
-            printf("%dtttt",which);
-            if(which<0){
-                which=howmanyeachwas[i/10];
-                howmanyeachfile[i /10]=howmanyeachwas[i /10]%10;
-            }
-//            createfile --file \root\test.txt
-//            insertstr --file \root\test.txt --str salam --pos 1:0
-//            insertstr --file \root\test.txt --str khunbi --pos 1:0
-            ptr = fopen(ourroot, "w");
-            howmanyeachfile[i/10]++;
-            //printf("%d %d",howmanyeachfile[i/10],howmanyeachwas[i/10]);
-            if (ptr == NULL) {
-                printf("File could not be created or be opened\n");
-                return -1;
-            }
-            printf("%s %s",fileundo[which].file,fileundo[which-1].file);
-            if(!fputs(fileundo[which].file,ptr))
-                printf("Successful\n");
-            else printf("Unssuccseful\n");
-            fclose(ptr);
-            return 1;
-        }
-    }
-        printf("File not found\n");
-        return -1;
-}
+
 
 void tree(const char *path,int indent,int indent1,int sign){
     if(indent1==-1)
@@ -135,7 +97,7 @@ void tree(const char *path,int indent,int indent1,int sign){
     while ((dp = readdir(dir)) != NULL){
         if(strcmp(dp->d_name,".")!=0 && strcmp(dp->d_name,"..")!=0){
             if(sign==0)
-                printf("%s-%s\n",indentto, dp->d_name);
+                //printf("%s-%s\n",indentto, dp->d_name);
             if(sign==1 && strlen(dp->d_name)-(int) (strstr(dp->d_name,".txt") - dp->d_name)==4){
                 //strstr(dp->d_name,".txt")!=NULL
                 // printf("%s %s",path,dp->d_name);
@@ -314,6 +276,62 @@ void inputtext(char string[]){
     }
 }
 
+int undo(){
+    char c, e, com[15], saver[400], *wherefind = "",root[80],*ourroot;
+    char wholefile[8000], *whole, *token;
+    FILE *ptr;
+    int which,i;
+    //printf("bbbbbbb");
+    char dir1[30] = "C:\\Users\\Amirhosein\\";
+    char dir [30]= "C:\\Users\\Amirhosein";
+    if ((c = getcharx()) == '\\') {
+        inputcommand(root);
+        ourroot = strcat(dir1, root);
+        //printf(" %s",ourroot);
+    }
+    else if (c == '"') {
+        getcot(root);
+        ourroot = strcat(dir, root);
+        //  printf("%s %s",ourroot,root);
+    }
+    for ( i = 0; i < howmanyfiles*10+1; i+=10) {
+        //printf("aaaaa%s %s",ourroot,fileundo[i].name);
+        if(strcmp(ourroot,fileundo[i].name)==0) {
+//            if(howmanyeachwas[i/10]-1==0){
+//                printf("File just been created you cannot  do undo\n");
+//                return -1;
+            //}
+            howmanyeachfile[i/10]-=2;
+            which = howmanyeachfile[i /10]%10 ;
+           // printf("%dtttt",which);
+            if(which<0){
+                which=howmanyeachwas[i/10]-1;
+                howmanyeachfile[i /10]=howmanyeachwas[i /10]%10;
+            }
+//            createfile --file \root\test.txt
+//            insertstr --file \root\test.txt --str salam --pos 1:0
+//            insertstr --file \root\test.txt --str khunbi --pos 1:0
+//            insertstr --file \root\test.txt --str hello --pos 1:0
+//            undo --file \root\test.txt
+            ptr = fopen(ourroot, "w");
+            howmanyeachfile[i/10]++;
+            howmanyeachfile[i/10]%=10;
+           // printf("%d %d",howmanyeachfile[i/10],howmanyeachwas[i/10]);
+            if (ptr == NULL) {
+                printf("File could not be created or be opened\n");
+                return -1;
+            }
+            //printf("%s ",fileundo[which].file);
+            if(!fputs(fileundo[which].file,ptr))
+                printf("Successful\n");
+            else printf("Unssuccseful\n");
+            fclose(ptr);
+            return 1;
+        }
+    }
+    printf("File not found\n");
+    return -1;
+}
 void fileinserterspace() {
     char root[70] = {0}, c;
     char dir[30] = "C:\\Users\\Amirhosein";
@@ -1329,6 +1347,7 @@ void inputfind(char string[]){
     }
 
 }
+
 int findstr() {
     char c, e, *ourroot, text[300], text2[300], com[15], root[70], saver[400], *wherefind = "";
     char dir1[30] = "C:\\Users\\Amirhosein\\";
@@ -1938,7 +1957,6 @@ int replace() {
 
 }
 
-
 void switchfind(int answer){
     switch (answer) {
         case -2:
@@ -1996,7 +2014,7 @@ int grep(int sign){
     }
     inputcommand(com);
     if(strcmp(com,"--files")!=0) {
-        printf("%s", com);
+       // printf("%s", com);
         return -1;
     }
     //printf("%s %s",com,text);
@@ -2050,6 +2068,7 @@ int grep(int sign){
         return 6;
     }
 }
+
 void switchgrep(int answer) {
     switch (answer) {
         case -1:
@@ -2070,6 +2089,234 @@ void switchgrep(int answer) {
     }
 }
 
+int compare() {
+    char c, e, *ourroot, root[70],root2[70];
+    char dir1[30] = "C:\\Users\\Amirhosein\\";
+    char dir[30] = "C:\\Users\\Amirhosein";
+    char dir12[30] = "C:\\Users\\Amirhosein\\";
+    char dir2[30] = "C:\\Users\\Amirhosein";
+    FILE *ptr, *ptrr, *ptr2, *ptrr2;
+    char saver1[400], saver2[400];
+    char word1[40], word2[40];
+    getcharx();
+    if ((c = getcharx()) == '\\') {
+        inputcommand(root);
+        ourroot = strcat(dir1, root);
+        //printf("%s",ourroot);
+        ptr = fopen(ourroot, "r");
+        ptrr= fopen(ourroot,"r");
+        if (ptr == NULL) {
+            printf("FIle could not be opened\n");
+            return -2;
+        }
+    } else if (c == '"') {
+        getcot(root);
+        ourroot = strcat(dir, root);
+        // printf("%s %s",ourroot,root);
+        ptr = fopen(ourroot, "r");
+        ptrr= fopen(ourroot,"r");
+        if (ptr == NULL) {
+            printf("FIle could not be opened\n");
+            return -2;
+        }
+    }
+    // printf("%s",ourroot);
+    getcharx();
+    ourroot[0]='\0';
+    if ((c = getcharx()) == '\\') {
+        inputcommand(root2);
+        ourroot = strcat(dir12, root2);
+        //printf("%s",ourroot);
+        ptr2 = fopen(ourroot, "r");
+        ptrr2 = fopen(ourroot, "r");
+        if (ptr == NULL) {
+            printf("FIle could not be opened\n");
+            return -2;
+        }
+    } else if (c == '"') {
+        getcot(root2);
+        ourroot = strcat(dir2, root2);
+        // printf("%s %s",ourroot,root);
+        ptr2 = fopen(ourroot, "r");
+        ptrr2 = fopen(ourroot, "r");
+        if (ptr == NULL) {
+            printf("FIle could not be opened\n");
+            return -2;
+        }
+    }
+    //printf("%s",ourroot);
+    int togo, one, two, one2, two2, togo2;
+    fseek(ptr, 0, SEEK_END);
+    fseek(ptr2, 0, SEEK_END);
+    one= ftell(ptr);
+    two= ftell(ptr2);
+    if (ftell(ptr) > ftell(ptr2))
+        togo = ftell(ptr2);
+    else
+        togo = ftell(ptr);
+    // printf("%d",togo);
+    rewind(ptr);
+    rewind(ptr2);
+    int counterinline = 0,enter=0, x, y,pos1,pos2;
+    char *worddif1, *worddif2;
+    while (ftell(ptr) <= togo && ftell(ptr2) <= togo) {
+        enter++;
+        counterinline=0;
+        x = ftell(ptrr);
+        y = ftell(ptrr2);
+        fseek(ptr,x,SEEK_SET);
+        fseek(ptr2,y,SEEK_SET);
+        if(ftell(ptr)>=one || ftell(ptr2)>=two)
+            break;
+        fgets(saver1, 400, ptrr);
+        fgets(saver2, 400, ptrr2);
+        one2 = ftell(ptrr);
+        two2 = ftell(ptrr2);
+        if (one2 > two2)
+            togo2 = two2;
+        else
+            togo2 = one2;
+        //printf("%d %d %d",togo2,one2,two2);
+        while ( 1) {
+            fscanf(ptr, "%s", word1);
+            fscanf(ptr2, "%s", word2);
+            if(ftell(ptr2)>=togo2 || ftell(ptr)>=togo2)
+                break;
+            // printf("%s %s\n%d %d %d",word1,word2,counterinline, ftell(ptr), ftell(ptr2));
+            if (strcmp(word1, word2) != 0)
+                counterinline++;
+            if (counterinline == 1 && strcmp(word1, word2) != 0) {
+                pos1= ftell(ptr)- strlen(word1);
+                pos2= ftell(ptr2)- strlen(word2);
+                worddif1 = strdup(word1);
+                worddif2 = strdup(word2);
+            }
+
+        }
+        if(one2!=two2 &&counterinline==0)
+            counterinline=2;
+        if(counterinline==1){
+            fseek(ptrr,x,SEEK_SET);
+            fseek(ptrr2,y,SEEK_SET);
+            printf("#########%d########\n",enter);
+            // printf("%d %d", pos1, pos2);
+            for (int i = ftell(ptrr); i < pos1; ++i) {
+                printf("%c", fgetc(ptrr));
+            }
+            printf("<<%s>>",worddif1);
+            fseek(ptrr, strlen(worddif1),SEEK_CUR);
+            int z= ftell(ptrr);
+            for (int i = 0; i<one2-z  ; ++i) {
+                printf("%c",fgetc(ptrr));
+            }
+            printf("\n");
+            for (int i = ftell(ptrr2); i < pos2; ++i) {
+                printf("%c", fgetc(ptrr2));
+            }
+            printf("<<%s>>",worddif2);
+            fseek(ptrr2, strlen(worddif2),SEEK_CUR);
+            z= ftell(ptrr2);
+            for (int i = 0; i<two2-z  ; ++i) {
+                printf("%c",fgetc(ptrr2));
+            }
+        }
+        else{
+            printf("#########%d########\n",enter);
+            printf("%s\n%s",saver1,saver2);
+        }
+    }
+    int time=enter;
+    if(togo==one){
+        int w= ftell(ptrr2);
+        while(fgets(saver2,400,ptrr2)!=NULL){
+            time++;
+        }
+        fseek(ptrr2,w,SEEK_SET);
+        if(time!=enter)
+            printf("\n#######%d - %d#######\n",enter,time);
+        while(fgets(saver2,400,ptrr2)!=NULL){
+            printf("%s\n",saver2);
+        }
+    }
+    else{
+        int w= ftell(ptrr);
+        while(fgets(saver1,400,ptrr)!=NULL){
+            time++;
+        }
+        fseek(ptrr,w,SEEK_SET);
+        if(time!=enter)
+            printf("\n#######%d - %d#######\n",enter,time);
+        while(fgets(saver1,400,ptrr)!=NULL){
+            printf("%s\n",saver1);
+        }
+    }
+    fclose(ptr);
+    fclose(ptrr);
+    fclose(ptr2);
+    fclose(ptrr2);
+}
+
+int autoindent(){
+    char  e, *ourroot, root[70];
+    char dir1[30] = "C:\\Users\\Amirhosein\\";
+    char dir[30] = "C:\\Users\\Amirhosein";
+    char *a,b[150],*c;
+    int p=0,r=0,i=0;
+    int t=0;
+    int x,g,s,n,o;
+    FILE *ptr;
+    getcharx();
+    if ((e = getcharx()) == '\\') {
+        inputcommand(root);
+        ourroot = strcat(dir1, root);
+        //printf("%s",ourroot);
+        ptr = fopen(ourroot, "r");
+        if (ptr == NULL) {
+            printf("FIle could not be opened\n");
+            return -2;
+        }
+    } else if (e == '"') {
+        getcot(root);
+        ourroot = strcat(dir, root);
+        // printf("%s %s",ourroot,root);
+        ptr = fopen(ourroot, "r");
+        if (ptr == NULL) {
+            printf("FIle could not be opened\n");
+            return -2;
+        }
+    }
+    fseek(ptr, 0, SEEK_END);
+    long int size = ftell(ptr);
+    rewind(ptr);
+    a = calloc(size + 1, 1);
+    fread(a,1,size,ptr);
+    char read,spaceto[21];
+    int acocounter=0;
+    i=0;
+    while(a[i]!=NULL) {
+
+        r = strlen(a);
+        n = strlen(b);
+        i = 0;
+
+        while (i <= r) {
+            c[i] = a[i];
+            i++;
+        }
+        s = n + r;
+        o = p + n;
+        for (i = p; i < s; i++) {
+            x = c[i];
+            if (t < n) {
+                a[i] = b[t];
+                t = t + 1;
+            }
+            a[o] = x;
+            o = o + 1;
+        }
+    }
+    fclose(ptr);
+}
 
 int main() {
     char com[15],com2[8],c;
@@ -2087,8 +2334,8 @@ int main() {
            "   1-cutstr --file <file name> --pos <line no>:<start position> -size <number of characters to cut> -f -b <forward or backward>\n F:For paste:\n   1-pastestr --file <file name> --pos "
            "<line no>:<start position>\n G:For find:\n   1-find --str <str> --file <file name>\n   2-You can add -at,-count-all,-byword to the end(you can use -at of -all with byword)\n"
            "H:For replacing:\n   1-replace --str1 <str> --str2 <str> --file <file name> [-at <num> | -all]\n I:For grep:\n   1-grep [options] --str <pattern> --files [<file1> <file2> <file3> ...]\n"
-           "   2-You can use optiong -c(to show number of pattern) or -l(to show filenames) or nothing(to show all)\n J:for undo:\n   1-undo --file <file>\n   2-you can undo 10 times and files"
-           "that existed before runnig will have their first contents too\n ");
+           "   2-You can use optiong -c(to show number of pattern) or -l(to show filenames) or nothing(to show all)\n J:for undo:\n   1-undo --file <file>\n M:for compare:\n   1-compare file1 file2\n N:for tree:\n"
+           "   1-tree --file file depth\n");
 
     inputcommand(com);
     while(strcmp(com,"exit")!=0){
@@ -2201,22 +2448,12 @@ int main() {
                 printf("Invalid input\n");
         }
         else if(strcmp(com,"undo")==0) {
+           // printf("%d %d %d",howmanyeachwas[0],howmanyeachfile[0],howmanyfiles);
             inputcommand(com2);
             getcharx();
+           // printf("%s",com2);
             if (strcmp(com2, "--file") == 0) {
-
-                if ((c = getcharx()) == '\\') {
-                    inputcommand(root);
-                    ourroot = strcat(dir1, root);
-                    //printf(" %s",ourroot);
-                }
-                else if (c == '"') {
-                    getcot(root);
-                    ourroot = strcat(dir, root);
-                    // printf("%s %s",ourroot,root);
-                }
-              //  printf("%s",ourroot);
-                answer=undo(ourroot);
+                answer=undo();
                 //answer=undo(ourroot);
             } else
                 printf("Invalid input\n");
@@ -2225,14 +2462,18 @@ int main() {
             inputcommand(com2);
             getcharx();
             if (strcmp(com2, "--file") == 0) {
+                char dir1[30] = "C:\\Users\\Amirhosein\\";
+                char dir[30] = "C:\\Users\\Amirhosein";
+                *ourroot;
                 if ((c = getcharx()) == '\\') {
                     inputcommand(root);
+                   // printf("%s %s",dir1,root);
                     ourroot = strcat(dir1, root);
-                    //printf(" %s",ourroot);
+                   // printf(" %s",ourroot);
                 } else if (c == '"') {
                     getcot(root);
                     ourroot = strcat(dir, root);
-                    // printf("%s %s",ourroot,root);
+                 //    printf("%s %s",ourroot,root);
                 }
                 int depth;
                 scanf("%d",&depth);
@@ -2242,8 +2483,18 @@ int main() {
                     printf("Directory tree is:\n");
                     tree(ourroot, 1, depth, 0);
                 }
-            } else
+            }
+            else if(strcmp(com,"tree")==0) {
+                compare();
+            }
+            else
                 printf("Invalid input\n");
+        }
+        else if(strcmp(com,"compare")==0){
+            compare();
+        }
+        else if(strcmp(com,"auto-indent")==0){
+            autoindent();
         }
         else {
             if(getcharx()=='\n')
