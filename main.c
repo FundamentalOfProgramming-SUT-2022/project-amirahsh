@@ -332,6 +332,7 @@ int undo(){
     printf("File not found\n");
     return -1;
 }
+
 void fileinserterspace() {
     char root[70] = {0}, c;
     char dir[30] = "C:\\Users\\Amirhosein";
@@ -725,8 +726,8 @@ int removex(){
             ptr=fopen(ourroot,"w");
             //printf("%s",whole);
             if (!fputs(whole, ptr)) {
-                undotosave(ourroot,-2);
                 fclose(ptr);
+                undotosave(ourroot,-2);
                 return 7;
             }
             else {
@@ -753,8 +754,8 @@ int removex(){
             ptr=fopen(ourroot,"w");
             //printf("%s",whole);
             if (!fputs(whole, ptr)) {
-                undotosave(ourroot,-2);
                 fclose(ptr);
+                undotosave(ourroot,-2);
                 return 7;
             }
             else {
@@ -865,8 +866,8 @@ int removex(){
             ptr=fopen(ourroot,"w");
             //printf("%s",whole);
             if (!fputs(whole, ptr)) {
-                undotosave(ourroot,-2);
                 fclose(ptr);
+                undotosave(ourroot,-2);
                 return 7;
             }
             else {
@@ -893,8 +894,8 @@ int removex(){
             ptr=fopen(ourroot,"w");
             //printf("%s",whole);
             if (!fputs(whole, ptr)) {
-                undotosave(ourroot,-2);
                 fclose(ptr);
+                undotosave(ourroot,-2);
                 return 7;
             }
             else {
@@ -1133,8 +1134,8 @@ int cut(){
         ptr = fopen(ourroot, "w");
         //printf("%s",cutstr);
         if (!fputs(whole, ptr)) {
-            undotosave(ourroot,-2);
             fclose(ptr);
+            undotosave(ourroot,-2);
             return 7;
         } else {
             fclose(ptr);
@@ -1171,8 +1172,8 @@ int cut(){
         ptr=fopen(ourroot,"w");
        // printf("%s",cutstr);
         if (!fputs(whole, ptr)) {
-            undotosave(ourroot,-2);
             fclose(ptr);
+            undotosave(ourroot,-2);
             return 7;
         }
         else {
@@ -1268,8 +1269,8 @@ int paste(){
         fclose(ptr);
         fopen(ourroot,"a+");
         if (!fputs(whole1, ptr)) {
-            undotosave(ourroot,-2);
             fclose(ptr);
+            undotosave(ourroot,-2);
             return 7;
         }
         else {
@@ -2159,7 +2160,7 @@ int compare() {
     rewind(ptr2);
     int counterinline = 0,enter=0, x, y,pos1,pos2;
     char *worddif1, *worddif2;
-    while (ftell(ptr) <= togo && ftell(ptr2) <= togo) {
+    while (ftell(ptr) <= togo || ftell(ptr2) <= togo) {
         enter++;
         counterinline=0;
         x = ftell(ptrr);
@@ -2172,7 +2173,7 @@ int compare() {
         fgets(saver2, 400, ptrr2);
         one2 = ftell(ptrr);
         two2 = ftell(ptrr2);
-        if (one2 > two2)
+        if (one2 < two2)
             togo2 = two2;
         else
             togo2 = one2;
@@ -2180,9 +2181,11 @@ int compare() {
         while ( 1) {
             fscanf(ptr, "%s", word1);
             fscanf(ptr2, "%s", word2);
-            if(ftell(ptr2)>=togo2 || ftell(ptr)>=togo2)
-                break;
-            // printf("%s %s\n%d %d %d",word1,word2,counterinline, ftell(ptr), ftell(ptr2));
+            if(ftell(ptr2)>=togo2 || ftell(ptr)>=togo2){
+                word1[0]='\0';
+                word2[0]='\0';
+                break;}
+             //printf("%s %s\n%d %d %d",word1,word2,counterinline, ftell(ptr), ftell(ptr2));
             if (strcmp(word1, word2) != 0)
                 counterinline++;
             if (counterinline == 1 && strcmp(word1, word2) != 0) {
@@ -2205,9 +2208,10 @@ int compare() {
             }
             printf("<<%s>>",worddif1);
             fseek(ptrr, strlen(worddif1),SEEK_CUR);
+            char w;
             int z= ftell(ptrr);
-            for (int i = 0; i<one2-z  ; ++i) {
-                printf("%c",fgetc(ptrr));
+            for (int i = 0; i<one2-z && (w=fgetc(ptrr))!='\n'  ; ++i) {
+                printf("%c",w);
             }
             printf("\n");
             for (int i = ftell(ptrr2); i < pos2; ++i) {
@@ -2216,23 +2220,25 @@ int compare() {
             printf("<<%s>>",worddif2);
             fseek(ptrr2, strlen(worddif2),SEEK_CUR);
             z= ftell(ptrr2);
-            for (int i = 0; i<two2-z  ; ++i) {
-                printf("%c",fgetc(ptrr2));
+            for (int i = 0; i<two2-z && (w=fgetc(ptrr2))!='\n'  ; ++i) {
+                printf("%c",w);
             }
         }
         else{
             printf("#########%d########\n",enter);
             printf("%s\n%s",saver1,saver2);
         }
+        fgets(saver1, 400, ptr);
+        fgets(saver2, 400, ptr2);
     }
-    int time=enter;
+    int time=enter-1;
     if(togo==one){
         int w= ftell(ptrr2);
         while(fgets(saver2,400,ptrr2)!=NULL){
             time++;
         }
         fseek(ptrr2,w,SEEK_SET);
-        if(time!=enter)
+        if(time!=enter-1)
             printf("\n#######%d - %d#######\n",enter,time);
         while(fgets(saver2,400,ptrr2)!=NULL){
             printf("%s\n",saver2);
@@ -2244,7 +2250,7 @@ int compare() {
             time++;
         }
         fseek(ptrr,w,SEEK_SET);
-        if(time!=enter)
+        if(time!=enter-1)
             printf("\n#######%d - %d#######\n",enter,time);
         while(fgets(saver1,400,ptrr)!=NULL){
             printf("%s\n",saver1);
@@ -2294,7 +2300,10 @@ int autoindent(){
     int acocounter=0;
     i=0;
     while(a[i]!=NULL) {
+        if(a[i]=='{'){
+            acocounter++;
 
+        }
         r = strlen(a);
         n = strlen(b);
         i = 0;
@@ -2314,6 +2323,7 @@ int autoindent(){
             a[o] = x;
             o = o + 1;
         }
+        i++;
     }
     fclose(ptr);
 }
